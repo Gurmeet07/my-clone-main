@@ -1,44 +1,33 @@
 import { toast } from "sonner";
-import { InferRequestType, InferResponseType } from "hono";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { client } from "@/lib/rpc";
 
+interface UpdateMemberProps {
+  memberId: string;
+  data: { name?: string; role?: string }; // 🛠️ Define expected update fields
+}
 
-import {client} from "@/lib/rpc";
+export const useUpdateMember = () => {
+  const queryClient = useQueryClient();
 
+  return useMutation({
+    mutationFn: async ({ memberId, data }: UpdateMemberProps) => {
+      // ✅ Correct API Call
+      const url = new URL(`/api/members/${memberId}`, process.env.NEXT_PUBLIC_API_BASE_URL);
+      const response = await client.call("PATCH", url, { body: JSON.stringify(data) });
 
-type ResponseType = InferResponseType<typeof client.api.members[":memberId"]["$patch"], 200>;
-type RequestType = InferRequestType<typeof client.api.members[":memberId"]["$patch"]>;
+      if (!response.ok) {
+        throw new Error("Failed to update member");
+      }
 
-
-
-export const useUpdateMember = () =>{
-    const queryClient = useQueryClient();
-
-    const mutation = useMutation<
-    ResponseType,
-    Error,
-    RequestType
-    >({
-        mutationFn:async ({param, json}) => {
-            const response = await client.api.members[":memberId"]["$patch"]({param, json});
-            
-
-
-            if (!response.ok){
-                throw new Error ("Failed to update member");
-            }
-
-            return await response.json();
-        },
-        onSuccess: () =>{
-            toast.success("Member updated");
-            queryClient.invalidateQueries({queryKey: ["members"] });
-        },
-        onError: () =>{
-            toast.error("Failed to update member");
-        },
-    }); 
-    return mutation; 
+      return response.json();
+    },
+    onSuccess: () => {
+      toast.success("✅ Member updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["members"] }); // Refresh members list
+    },
+    onError: () => {
+      toast.error("❌ Failed to update member!");
+    },
+  });
 };
-
-

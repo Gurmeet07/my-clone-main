@@ -1,4 +1,4 @@
-import { Client, Account, Databases } from "node-appwrite"; // ❌ `Users` hata diya
+import { Client, Account, Databases } from "node-appwrite"; 
 import { AUTH_COOKIE } from "@/features/auth/constants";
 
 const client = new Client()

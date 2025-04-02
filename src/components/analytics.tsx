@@ -4,8 +4,11 @@ import { ScrollArea, ScrollBar } from "./ui/scroll-area";
 import { AnalyticsCard } from "./analytics-card";
 import { DottedSeparator } from "./dotted-separator";
 
+interface AnalyticsProps {
+    data: ProjectAnalyticsResponseType;
+}
 
-export const Analytics = ({ data }: ProjectAnalyticsResponseType) => { 
+export const Analytics = ({ data }: AnalyticsProps) => { 
    return(
     <ScrollArea className="border rounded-lg w-full whitespace-nowrap shrink-0">
         <div className="w-full flex flex-row">

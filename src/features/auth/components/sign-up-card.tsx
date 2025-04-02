@@ -44,8 +44,8 @@ const { mutate, isPending } = useRegister();
     }, 
   });
 
-  const onSubmit = (values: z.infer<typeof registerSchema>) => {
-    mutate({json: values});
+  const onSubmit = (values: z.infer<typeof registerSchema>) => { 
+    mutate(values);
   };
 
   return (

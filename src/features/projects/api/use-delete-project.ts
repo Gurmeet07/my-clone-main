@@ -1,41 +1,39 @@
 import { toast } from "sonner";
-import { InferRequestType, InferResponseType } from "hono";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { client } from "@/lib/rpc";
 
+interface DeleteProjectProps {
+  projectId: string;
+}
 
-import {client} from "@/lib/rpc";
+export const useDeleteProject = () => {
+  const queryClient = useQueryClient();
 
+  return useMutation({
+    mutationFn: async ({ projectId }: DeleteProjectProps) => {
+      // ✅ Properly Creating a URL
+      const url = new URL(`/api/projects/${projectId}`, process.env.NEXT_PUBLIC_API_BASE_URL!);
 
-type ResponseType = InferResponseType<typeof client.api.projects[":projectId"]["$delete"], 200>
-type RequestType = InferRequestType<typeof client.api.projects[":projectId"]["$delete"]>;
+      // ✅ Correctly Calling API
+      const response = await client.call("DELETE", url, {
+        headers: JSON.stringify({ "Content-Type": "application/json" }),
+      });
 
-export const useDeleteProject = () =>{
+      if (!response.ok) {
+        throw new Error("❌ Failed to delete project");
+      }
 
-    const queryClient = useQueryClient();
+      return response.json();
+    },
+    onSuccess: (_, { projectId }) => {
+      toast.success("✅ Project deleted successfully!");
 
-    const mutation = useMutation<
-    ResponseType,
-    Error,
-    RequestType
-    >({
-        mutationFn:async ({ param }) => {
-            const response = await client.api.projects[":projectId"]["$delete"]({ param });
-
-            if (!response.ok){
-                throw new Error ("Failed to delete project");
-            }
-
-            return await response.json();
-        },
-        onSuccess: ({ data }) =>{
-            toast.success("Project deleted");
-      
-            queryClient.invalidateQueries({queryKey: ["projects"] });
-            queryClient.invalidateQueries({queryKey: ["project", data.$id] });
-        },
-        onError: () =>{
-            toast.error("Failed to delete project");
-        },
-    }); 
-    return mutation; 
+      // ✅ Correct Query Invalidation
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["project", projectId] });
+    },
+    onError: () => {
+      toast.error("❌ Failed to delete project!");
+    },
+  });
 };

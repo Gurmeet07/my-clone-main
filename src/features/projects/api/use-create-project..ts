@@ -1,38 +1,37 @@
 import { toast } from "sonner";
-import { InferRequestType, InferResponseType } from "hono";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { client } from "@/lib/rpc";
 
+interface CreateProjectProps {
+  name: string;
+  description?: string;
+  workspaceId: string;
+}
 
-import {client} from "@/lib/rpc";
+export const useCreateProject = () => {
+  const queryClient = useQueryClient();
 
+  return useMutation({
+    mutationFn: async ({ name, description, workspaceId }: CreateProjectProps) => {
+      const url = new URL("/api/projects", process.env.NEXT_PUBLIC_API_BASE_URL);
 
-type ResponseType = InferResponseType<typeof client.api.projects["$post"], 200>
-type RequestType = InferRequestType<typeof client.api.projects["$post"]>;
+      const response = await client.call("POST", url, {
+        body: JSON.stringify({ name, description, workspaceId }),
+        headers: JSON.stringify({ "Content-Type": "application/json" }), // ✅ Fix
+      });
 
-export const useCreateProject = () =>{
-    const queryClient = useQueryClient();
+      if (!response.ok) {
+        throw new Error("❌ Failed to create project");
+      }
 
-    const mutation = useMutation<
-    ResponseType,
-    Error,
-    RequestType
-    >({
-        mutationFn:async ({form}) => {
-            const response = await client.api.projects["$post"]({form});
-
-            if (!response.ok){
-                throw new Error ("Failed to create project");
-            }
-
-            return await response.json();
-        },
-        onSuccess: () =>{
-            toast.success("Project Created");
-            queryClient.invalidateQueries({queryKey: ["projects"] });
-        },
-        onError: () =>{
-            toast.error("Failed to create a project");
-        },
-    }); 
-    return mutation; 
+      return response.json();
+    },
+    onSuccess: () => {
+      toast.success("✅ Project created successfully!");
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+    onError: () => {
+      toast.error("❌ Failed to create project!");
+    },
+  });
 };
