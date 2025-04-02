@@ -1,25 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
-
-import { client } from "@/lib/rpc";
-
-// Custom hook to fetch the "current" user's data or session.
+import { createSessionClient } from "@/lib/rpc";
 
 export const useCurrent = () => {
-    const query = useQuery({   // Using the useQuery hook to fetch data for the "current" query.
-        queryKey: ["current"], // Unique key for the query to allow caching and refetching
-        queryFn: async () =>{  // Query function that fetches data asynchronously.
-            const response = await client.api.auth.current.$get();   // Sends a request to the auth API to get the current user/session.
-   
-             // If the response is not OK (error or unauthorized), return null.
-            if(!response.ok){
+    return useQuery({
+        queryKey: ["current"],
+        queryFn: async () => {
+            try {
+                const client = await createSessionClient();
+                return await client.account.get();
+            } catch (error) {
+                console.error(error); // 👈 Isse error print ho jayega
                 return null;
             }
-
-            const {data} = await response.json();
-            return data;
-             // Note: No return value specified for a successful response.
         },
+        retry: false,
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 30,
     });
-
-    return query;
 };

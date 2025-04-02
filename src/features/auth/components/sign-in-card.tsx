@@ -9,11 +9,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
 import { DottedSeparator } from "@/components/dotted-separator";
-import  { signUpWithGithub, signUpWithGoogle } from "@/lib/oauth";
+import { signUpWithGithub, signUpWithGoogle } from "@/lib/oauth";
 
-import { loginSchema } from "../schemas";
+import { loginSchema } from "../schemas"; // ✅ Correct schema for login
 import { useLogin } from "../api/use-login";
 
 import { 
@@ -45,7 +44,7 @@ export const SignInCard = () => {
   });
 
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
-   mutate({json: values});
+    mutate(values); // ✅ Fixed: `json` hata diya
   };
 
   return (
@@ -53,9 +52,11 @@ export const SignInCard = () => {
       <CardHeader className="flex items-center justify-center text-center p-7">
         <CardTitle className="text-2xl">Welcome Back!</CardTitle>
       </CardHeader>
+      
       <div className="px-7">
         <DottedSeparator />
       </div>
+      
       <CardContent className="p-7">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -68,7 +69,6 @@ export const SignInCard = () => {
                     <Input
                       className="w-full p-2 border-2"
                       {...field}
-                      
                       type="email"
                       placeholder="Enter email address"
                     />
@@ -96,7 +96,7 @@ export const SignInCard = () => {
               )}
             />
 
-            <Button disabled={isPending} size="lg" className="w-full">
+            <Button type="submit" disabled={isPending} size="lg" className="w-full">
               Login
             </Button>
           </form>
@@ -110,17 +110,17 @@ export const SignInCard = () => {
 
       <CardContent className="p-7 flex flex-col gap-y-4">
         <Button
-          onClick={() => signUpWithGoogle ()} 
+          onClick={() => signUpWithGoogle()} 
           disabled={isPending}
           variant="secondary"
           size="lg"
           className="w-full"
         >
           <FcGoogle className="mr-2 size-5" />
-          Login with google
+          Login with Google
         </Button>
         <Button
-          onClick={() => signUpWithGithub ()}  
+          onClick={() => signUpWithGithub()}  
           disabled={isPending}
           variant="secondary"
           size="lg"
@@ -130,8 +130,9 @@ export const SignInCard = () => {
           Login with Github
         </Button>
       </CardContent>
+
       <div className="px-7">
-        <DottedSeparator/>
+        <DottedSeparator />
       </div>
 
       <CardContent className="p-7 flex items-center justify-center">
@@ -141,7 +142,6 @@ export const SignInCard = () => {
                 <span className="text-blue-500">&nbsp;Sign-up</span>
             </Link>
         </p>
-
       </CardContent>
     </Card>
   );
